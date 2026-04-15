@@ -1,0 +1,14 @@
+*.vspscc
+*.vssscc
+*.scc
+*.suo
+*.user
+
+/*.bat
+
+/IR-Kinematics/*.sln
+
+/_release/
+
+/IR-Kinematics/IR-Kinematics/bin/
+/IR-Kinematics/IR-Kinematics/obj/
