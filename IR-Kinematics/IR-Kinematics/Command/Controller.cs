@@ -4,8 +4,6 @@ using System.Collections.Generic;
 
 using UnityEngine;
 
-using IR_Kinematics.Utility;
-
 
 namespace IR_Kinematics.Command
 {
