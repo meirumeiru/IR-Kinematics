@@ -99,6 +99,7 @@
     <Compile Include="Limiter\Limiter.cs" />
     <Compile Include="Limiter\ServoLimiter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Solver\IIKEndEffectorWrapper.cs" />
     <Compile Include="Solver\IIKPartWrapper.cs" />
     <Compile Include="Solver\IIKServoGroup.cs" />
     <Compile Include="Solver\IIKServoWrapper.cs" />

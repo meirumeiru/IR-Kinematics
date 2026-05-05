@@ -10,7 +10,7 @@ namespace IR_Kinematics.Solver
 	{
 		// Parts, Servos
 
-		IIKPartWrapper Create_IKPartWrapper(uint p_persistentId, Vector3 p_position, Quaternion p_rotation);
+		IIKEndEffectorWrapper Create_IKEndEffectorWrapper(uint p_persistentId, Vector3 p_position, Quaternion p_rotation, Vector3 p_localUp, Vector3 p_localRight);
 
 		IIKServoWrapper Create_IKServoWrapper(uint p_persistentId, Vector3 p_position, Quaternion p_rotation, Vector3 p_axis, Vector3 p_secAxis, Vector3 p_anchor, bool p_rotational, bool p_limited);
 
@@ -18,7 +18,8 @@ namespace IR_Kinematics.Solver
 
 		void InitializeIK(bool isReversed,
 			List<Command.ServoWrapper> ikServosForward, List<Command.ServoWrapper> ikServosBackward,
-			Transform pEndEffectorTransform, Part rootPart,
+Command.EndEffectorWrapper pEndEffector, // FEHLER, neue Idee
+			/*Transform pEndEffectorTransform,*/ Part rootPart,
 			out Solver.IIKServoGroup ikg, out bool bIsValidGroup);
 
 		void UninitializeIK(Solver.IIKServoGroup ikg);

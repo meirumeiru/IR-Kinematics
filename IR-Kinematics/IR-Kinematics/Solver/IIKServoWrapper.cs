@@ -8,12 +8,12 @@ namespace IR_Kinematics.Solver
 {
 	public interface IIKServoWrapper : IIKPartWrapper
 	{
-		void SetPointerPart(uint p_pointerPartPersistentId, Vector3 p_localPointerPartPosition);
+		void UpdatePosition(Vector3 p_position, Quaternion p_rotation, float pos);
+
+		void SetPointerPart(IIKPartWrapper p_pointerPart);
 
 		float TotalRelRotCommand { get; set; }
 		float Speed { get; set; }
-
-		Vector3 Position { get; }
 
 		bool IsRotational { get; }
 

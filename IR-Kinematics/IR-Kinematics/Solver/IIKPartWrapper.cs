@@ -10,6 +10,9 @@ namespace IR_Kinematics.Solver
 	{
 		uint PersistentId { get; }
 
-		void SetPosition(Vector3 p_position, Quaternion p_rotation, float pos);
+		void UpdatePosition(Vector3 p_position, Quaternion p_rotation);
+
+		Vector3 Position { get; }
+		Quaternion Rotation { get; }
 	}
 }

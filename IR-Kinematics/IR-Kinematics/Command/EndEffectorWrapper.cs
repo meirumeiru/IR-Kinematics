@@ -8,27 +8,35 @@ namespace IR_Kinematics.Command
 	public class EndEffectorWrapper
 	{
 		public Part part;
+// FEHLER, 3 Teils sind neue Idee...
+		public Transform pEndEffectorTransform;
+		public Vector3 localEndEffectorUp;						// gibt an, was in der Gizmo-Anzeige als "up" gelten soll
+		public Vector3 localEndEffectorRight;					// gibt an, was in der Gizmo-Anzeige als "right" gelten soll
 
-		private Solver.IIKPartWrapper ikp;
+		private Solver.IIKEndEffectorWrapper ike;
 
-		public EndEffectorWrapper(Part p)
+		public EndEffectorWrapper(Part p, Transform p_endEffectorTransform, Vector3 p_localEndEffectorUp, Vector3 p_localEndEffectorRight)
 		{
 			part = p;
+			pEndEffectorTransform = p_endEffectorTransform;
+			localEndEffectorUp = p_localEndEffectorUp;
+			localEndEffectorRight = p_localEndEffectorRight;
 
-			ikp = Controller.s.Create_IKPartWrapper(part.persistentId, part.transform.position, part.transform.rotation);
+			ike = Controller.s.Create_IKEndEffectorWrapper(part.persistentId,
+				pEndEffectorTransform.position, pEndEffectorTransform.rotation, localEndEffectorUp, localEndEffectorRight);
 		}
 
 		////////////////////////////////////////
 		// IK solver data
 
-		public Solver.IIKPartWrapper IKP
+		public Solver.IIKEndEffectorWrapper IKE
 		{
-			get { return ikp; }
+			get { return ike; }
 		}
 
-		public void SetPosition()
+		public void UpdatePosition()
 		{
-			ikp.SetPosition(part.transform.position, part.transform.rotation, 0);
+			ike.UpdatePosition(pEndEffectorTransform.position, pEndEffectorTransform.rotation);
 		}
 	}
 }

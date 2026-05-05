@@ -278,12 +278,15 @@ static float maxTurning = 2f;
 		byte key_q = 0;
 		byte key_e = 0;
 
+		byte key_z = 0;
+
 		byte key_resetTarget = 0; byte key_resetOffset = 0;
 
 		private void ResetKeys()
 		{
 			key_l = 0; key_j = 0; key_i = 0; key_k = 0; key_h = 0; key_n = 0;
 			key_w = 0; key_s = 0; key_a = 0; key_d = 0; key_q = 0; key_e = 0;
+			key_z = 0;
 
 			key_resetTarget = 0; key_resetOffset = 0;
 		}
@@ -315,6 +318,8 @@ static float maxTurning = 2f;
 				key_d += (byte)((Input.GetKeyDown(KeyCode.D) ? DownType : 0) + (Input.GetKeyUp(KeyCode.D) ? UpType : 0));
 				key_q += (byte)((Input.GetKeyDown(KeyCode.Q) ? DownType : 0) + (Input.GetKeyUp(KeyCode.Q) ? UpType : 0));
 				key_e += (byte)((Input.GetKeyDown(KeyCode.E) ? DownType : 0) + (Input.GetKeyUp(KeyCode.E) ? UpType : 0));
+
+				key_z += (byte)((Input.GetKeyDown(KeyCode.Z) ? DownType : 0) + (Input.GetKeyUp(KeyCode.Z) ? UpType : 0));
 			}
 		}
 
@@ -336,6 +341,8 @@ static float maxTurning = 2f;
 			key_d += (byte)(Input.GetKey(KeyCode.D) ? Type : 0);
 			key_q += (byte)(Input.GetKey(KeyCode.Q) ? Type : 0);
 			key_e += (byte)(Input.GetKey(KeyCode.E) ? Type : 0);
+
+			key_z += (byte)(Input.GetKey(KeyCode.Z) ? Type : 0);
 		}
 
 		private void SetTarget(Part targetPart)
@@ -555,6 +562,9 @@ Quaternion.AngleAxis(_s * br, port.GetNodeTransform().forward) *
 				
 					float factor = bFast ? 0.1f : 0.001f;
 
+					if((key_z & DownType) != 0)
+						bUserInput = true;
+
 					if((key_l & DownType) != 0) // rechts
 					{ targetPosition += targetRotation * pActiveGroup.localEndEffectorRight * factor; bUserInput = true; }
 					if((key_j & DownType) != 0) // links
@@ -654,6 +664,9 @@ Quaternion.AngleAxis(_s * br, port.GetNodeTransform().forward) *
 					bool _bUserInput = false;
 
 					float factor = bFast ? 0.1f : 0.001f;
+
+					if((key_z & DownType) != 0)
+						bUserInput = true;
 
 					if((key_l & DownType) != 0) // rechts
 					{ targetPosition += targetRotation * pActiveGroup.localEndEffectorRight * factor; _bUserInput = true; }

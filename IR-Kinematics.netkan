@@ -10,6 +10,8 @@ tags:
   - plugin
 depends:
   - name: InfernalRoboticsNext
+recommends:
+  - name: IR-Canadarm
 install:
   - file: GameData/IRKinematics
     install_to: GameData

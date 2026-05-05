@@ -32,7 +32,7 @@ namespace IR_Kinematics.Utility
 		public void Destroy()
 		{
 			if(lineRenderer != null)
-				UnityEngine.Object.Destroy(lineRenderer.gameObject);
+				UnityEngine.Object.DestroyImmediate(lineRenderer.gameObject);
 		}
 
 		public void Reset(Transform parent = null)

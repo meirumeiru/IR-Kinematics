@@ -34,6 +34,7 @@ namespace IR_Kinematics.Command
 
 		public Vector3 localEndEffectorUp;						// gibt an, was in der Gizmo-Anzeige als "up" gelten soll
 		public Vector3 localEndEffectorRight;					// gibt an, was in der Gizmo-Anzeige als "right" gelten soll
+public EndEffectorWrapper pEndEffectorWrapper; // FEHLER, ich probier umzustellen
 
 		public bool bShowPosition = false;
 
@@ -281,6 +282,9 @@ else if(p.children.Count > 0)
 				localEndEffectorRight = Vector3.right;
 			}
 
+pEndEffectorWrapper = new EndEffectorWrapper(pEndEffectorPart, pEndEffectorTransform, localEndEffectorUp, localEndEffectorRight);
+	// FEHLER, ich probier umzustellen
+
 			targetPositionOffset = Vector3.zero;
 			targetRotationOffset = Quaternion.identity;
 
@@ -423,9 +427,10 @@ if(!pEndEffectorPart /*|| (EndEffectorPosition() != 1)*/)
 
 
 			Controller.s.InitializeIK(isReversed, ikServosForward, ikServosBackward,
-				pEndEffectorTransform, rootPart,
+				pEndEffectorWrapper, rootPart,
 				out ikg, out bIsValidGroup);
 
+//pEndEffectorWrapper übergeben; // FEHLER, ich probier umzustellen
 
 			if(!bIsValidGroup)
 				ScreenMessages.PostScreenMessage("invalid group", 5, ScreenMessageStyle.UPPER_CENTER);
@@ -511,7 +516,9 @@ if(!pEndEffectorPart /*|| (EndEffectorPosition() != 1)*/)
 		public void UpdateIK()
 		{
 			for(int i = 0; i < servos.Count; i++)
-				servos[i].SetPosition();
+				servos[i].UpdatePosition();
+
+			pEndEffectorWrapper.UpdatePosition();
 
 			IKG.SetTargetPosition(
 				rootPart.transform.position + rootPart.transform.rotation * localTargetPosition,

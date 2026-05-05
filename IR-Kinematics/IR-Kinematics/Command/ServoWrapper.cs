@@ -37,17 +37,22 @@ namespace IR_Kinematics.Command
 		{
 			get { return iks; }
 		}
+// FEHLER, prüfen ob das gut ist
+//		public void SetPointerPart(Part newPointerPart)
+//		{
+//			iks.SetPointerPart(newPointerPart.persistentId,
+//				Quaternion.Inverse(servo.transform.rotation) *
+//					(newPointerPart.transform.position - servo/*.part*/.transform.position));
+//		}
 
-		public void SetPointerPart(Part newPointerPart)
+		public void SetPointerPart(Solver.IIKPartWrapper newPointerPart)
 		{
-			iks.SetPointerPart(newPointerPart.persistentId,
-				Quaternion.Inverse(servo.transform.rotation) *
-					(newPointerPart.transform.position - servo/*.part*/.transform.position));
+			iks.SetPointerPart(newPointerPart);
 		}
 
-		public void SetPosition()
+		public void UpdatePosition()
 		{
-			iks.SetPosition(servo.transform.position, servo.transform.rotation,
+			iks.UpdatePosition(servo.transform.position, servo.transform.rotation,
 				servo.Position);
 		}
 
