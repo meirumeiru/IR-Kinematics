@@ -17,7 +17,7 @@ namespace IR_Kinematics.Command
 
 		public IServoGroup servoGroup;
 
-		public Solver.IIKServoGroup ikg;
+		private Solver.IIKServoGroup ikg;
 	//	public System.UInt32 ikg2_id = 0;
 
 		public bool bIsValidGroup = false;						// gibt an, ob IK für diese Gruppe überhaupt möglich ist oder nicht
@@ -29,12 +29,9 @@ namespace IR_Kinematics.Command
 		public List<ServoWrapper> ikServosBackward = null;      // servos used for IK -> backwards (0 = last servo before endeffector)
 
 
-		public Part pEndEffectorPart;
-		public Transform pEndEffectorTransform;
-
-		public Vector3 localEndEffectorUp;						// gibt an, was in der Gizmo-Anzeige als "up" gelten soll
-		public Vector3 localEndEffectorRight;					// gibt an, was in der Gizmo-Anzeige als "right" gelten soll
-public EndEffectorWrapper pEndEffectorWrapper; // FEHLER, ich probier umzustellen
+	//	public Part pEndEffectorPart;
+	//	public Transform pEndEffectorTransform;
+		public EndEffectorWrapper endEffector;
 
 		public bool bShowPosition = false;
 
@@ -169,7 +166,7 @@ public EndEffectorWrapper pEndEffectorWrapper; // FEHLER, ich probier umzustelle
 
 		public void ResetTargetPosition()
 		{
-			SetTargetPosition(pEndEffectorTransform.position, pEndEffectorTransform.rotation, true);
+			SetTargetPosition(endEffector.Position, endEffector.Rotation, true);
 		}
 
 		////////////////////////////////////////
@@ -222,7 +219,7 @@ public EndEffectorWrapper pEndEffectorWrapper; // FEHLER, ich probier umzustelle
 
 				pSetEndEffectorGroup = null;
 
-				pEndEffectorPart = p;
+				SetEndEffector(p);
 			}
 
 			return true;
@@ -258,32 +255,33 @@ if(efp != null)
 else if(p.children.Count > 0)
 	p = p.children[0];
 
-			pEndEffectorPart = p;
+			SetEndEffector(p);
 		}
 
-		private void SetEndEffector()
+		private void SetEndEffector(Part pEndEffectorPart)
 		{
 // FEHLER, die Gruppe könnte "invalid" sein nach dem hier -> evtl. müsste man hier also exceptions abfangen? oder sonstwie bei Init-Funktionen, damit es nicht kracht deswegen?
 
 			DockingFunctions.IDockable port = pEndEffectorPart.GetComponent<DockingFunctions.IDockable>();
 
+			Vector3 Up, Right; Transform pEndEffectorTransform;
+
 			if(port != null)
 			{
 				pEndEffectorTransform = port.GetNodeTransform();
 
-				localEndEffectorUp = Vector3.forward;
-				localEndEffectorRight = port.GetDockingOrientation();
+				Up = Vector3.forward;
+				Right = port.GetDockingOrientation();
 			}
 			else
 			{
 				pEndEffectorTransform = pEndEffectorPart.transform;
 
-				localEndEffectorUp = Vector3.up;
-				localEndEffectorRight = Vector3.right;
+				Up = Vector3.up;
+				Right = Vector3.right;
 			}
 
-pEndEffectorWrapper = new EndEffectorWrapper(pEndEffectorPart, pEndEffectorTransform, localEndEffectorUp, localEndEffectorRight);
-	// FEHLER, ich probier umzustellen
+			endEffector = new EndEffectorWrapper(pEndEffectorPart, pEndEffectorTransform, Up, Right);
 
 			targetPositionOffset = Vector3.zero;
 			targetRotationOffset = Quaternion.identity;
@@ -343,13 +341,13 @@ pEndEffectorWrapper = new EndEffectorWrapper(pEndEffectorPart, pEndEffectorTrans
 
 		public int EndEffectorPosition()
 		{
-			if(ikServosBackward[0].servo.vessel != pEndEffectorPart.vessel)
+			if(ikServosBackward[0].servo.vessel != endEffector.part.vessel)
 				return 0; // not part of same vessel // FEHLER, in Zukunft auch Latch-Verbindungen unterstützen -> braucht dann halt noch mehr Info und Interface
 
-			if(FindElementInChildren(ikServosBackward[0].servo.HostPart, pEndEffectorPart))
+			if(FindElementInChildren(ikServosBackward[0].servo.HostPart, endEffector.part))
 				return 1; // in child
 
-			if(FindElementInParent(ikServosForward[0].servo.HostPart, pEndEffectorPart))
+			if(FindElementInParent(ikServosForward[0].servo.HostPart, endEffector.part))
 				return -1; // in parent
 
 			return 0; // FEHLER, sollte nie passieren eigentlich...
@@ -370,9 +368,7 @@ pEndEffectorWrapper = new EndEffectorWrapper(pEndEffectorPart, pEndEffectorTrans
 		////////////////////////////////////////
 		// Build IK Group
 
-static bool rv0 = false;
 float fReversed = 1f;
-static bool rv2 = true;
 
 struct scheisse : System.IComparable<scheisse> {
 
@@ -420,14 +416,14 @@ public int CompareTo(scheisse other)
 
 
 // FEHLER, temp, Quickfix, wobei, keine echte Lösung
-if(!pEndEffectorPart /*|| (EndEffectorPosition() != 1)*/)
+if((endEffector == null) || !endEffector.part/*|| (EndEffectorPosition() != 1)*/)
 	AutoSelectEndeffector();
 
-			SetEndEffector();
+		//	SetEndEffector();
 
 
 			Controller.s.InitializeIK(isReversed, ikServosForward, ikServosBackward,
-				pEndEffectorWrapper, rootPart,
+				endEffector, rootPart,
 				out ikg, out bIsValidGroup);
 
 //pEndEffectorWrapper übergeben; // FEHLER, ich probier umzustellen
@@ -518,7 +514,7 @@ if(!pEndEffectorPart /*|| (EndEffectorPosition() != 1)*/)
 			for(int i = 0; i < servos.Count; i++)
 				servos[i].UpdatePosition();
 
-			pEndEffectorWrapper.UpdatePosition();
+			endEffector.UpdatePosition();
 
 			IKG.SetTargetPosition(
 				rootPart.transform.position + rootPart.transform.rotation * localTargetPosition,
@@ -590,9 +586,9 @@ if(!pEndEffectorPart /*|| (EndEffectorPosition() != 1)*/)
 
 			for(int i = 0; i < ikServosForward.Count; i++)
 			{
-				if((ikServosForward[i].IKS.Speed * ikServosForward[i].endEffectorDistance).magnitude > fMaxDist)
+				if((ikServosForward[i].Speed * ikServosForward[i].endEffectorDistance).magnitude > fMaxDist)
 				{
-					float fact = fMaxDist / (ikServosForward[i].IKS.Speed * ikServosForward[i].endEffectorDistance).magnitude;
+					float fact = fMaxDist / (ikServosForward[i].Speed * ikServosForward[i].endEffectorDistance).magnitude;
 
 					fFactor = Mathf.Min(fFactor, fact);
 				}
@@ -600,8 +596,8 @@ if(!pEndEffectorPart /*|| (EndEffectorPosition() != 1)*/)
 
 			for(int i = 0; i < ikServosForward.Count; i++)
 			{
-				float relRotCommand = ikServosForward[i].servo.IsReversed ? -ikServosForward[i].IKS.TotalRelRotCommand : ikServosForward[i].IKS.TotalRelRotCommand;
-				float speed = ikServosForward[i].IKS.Speed * fFactor;
+				float relRotCommand = ikServosForward[i].servo.IsReversed ? -ikServosForward[i].TotalRelRotCommand : ikServosForward[i].TotalRelRotCommand;
+				float speed = ikServosForward[i].Speed * fFactor;
 
 				ikServosForward[i].servo.PrecisionMove(fReversed * relRotCommand, speed, speed * accelerationFactor, true);
 			}
@@ -612,10 +608,10 @@ if(!pEndEffectorPart /*|| (EndEffectorPosition() != 1)*/)
 
 		void CalculateLimit(ServoWrapper s)
 		{
-			s.endEffectorDistance = pEndEffectorTransform.transform.position - s.servo.transform.position;
+			s.endEffectorDistance = endEffector.Position - s.servo.transform.position;
 
 			s.endEffectorDistance =
-				Vector3.ProjectOnPlane(s.endEffectorDistance, s.IKS.GetAxisGlobal());
+				Vector3.ProjectOnPlane(s.endEffectorDistance, s.GetAxisGlobal());
 
 			// largestDistance -> FEHLER, später vielleicht mal... nicht jetzt
 		}

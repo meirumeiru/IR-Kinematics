@@ -18,7 +18,7 @@ namespace IR_Kinematics.Command
 		{
 			servo = (ModuleIRServo_v3)s;
 
-			iks = Controller.s.Create_IKServoWrapper(servo.part.persistentId, servo/*.part*/.transform.position, servo/*.part*/.transform.rotation, _GetAxis(), _GetSecAxis(), _GetAnchor(), servo.IsRotational, servo.HasMinMaxPosition || servo.IsLimited);
+			iks = Controller.s.Create_IKServoWrapper(servo.part.persistentId, servo.transform.position, servo.transform.rotation, _GetAxis(), _GetSecAxis(), _GetAnchor(), servo.IsRotational, servo.HasMinMaxPosition || servo.IsLimited);
 		}
 
 		private Vector3 _GetAxis()
@@ -30,6 +30,18 @@ namespace IR_Kinematics.Command
 		private Vector3 _GetAnchor()
 		{ return Quaternion.Inverse(servo.transform.rotation) * (servo.GetAnchor() - servo.transform.position); }
 
+// FEHLER, temp, damit's geht... wird an ein paar Stellen gebraucht... komisch war?
+		public bool IsRotational
+		{
+			get { return iks.IsRotational; } // FEHLER, oder direkt aus Servo holen?
+		}
+
+// FEHLER, sehr komisch, wird genau an 1 Stelle genutzt?
+		public Vector3 GetAxisGlobal()
+		{
+			return iks.GetAxisGlobal();
+		}
+
 		////////////////////////////////////////
 		// IK solver data
 
@@ -37,13 +49,6 @@ namespace IR_Kinematics.Command
 		{
 			get { return iks; }
 		}
-// FEHLER, prüfen ob das gut ist
-//		public void SetPointerPart(Part newPointerPart)
-//		{
-//			iks.SetPointerPart(newPointerPart.persistentId,
-//				Quaternion.Inverse(servo.transform.rotation) *
-//					(newPointerPart.transform.position - servo/*.part*/.transform.position));
-//		}
 
 		public void SetPointerPart(Solver.IIKPartWrapper newPointerPart)
 		{
@@ -54,6 +59,18 @@ namespace IR_Kinematics.Command
 		{
 			iks.UpdatePosition(servo.transform.position, servo.transform.rotation,
 				servo.Position);
+		}
+
+		public float TotalRelRotCommand
+		{
+			get { return iks.TotalRelRotCommand; }
+			set { iks.TotalRelRotCommand = value; }
+		}
+
+		public float Speed
+		{
+			get { return iks.Speed; }
+			set { iks.Speed = value; }
 		}
 
 		////////////////////////////////////////

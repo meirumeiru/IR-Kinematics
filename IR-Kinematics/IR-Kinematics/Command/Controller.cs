@@ -86,12 +86,6 @@ namespace IR_Kinematics.Command
 			{
 				if(aAllGroups[i].Compare(g))
 				{
-//aAllGroups[i].vessel = g.Vessel; // FEHLER, Bugfix, weil, der kann ändern -> und: sicherstellen, dass wir überhaupt hierher kommen, wenn das passiert!!!
-
-//	das reicht nicht -> entweder immer von Gruppe auslesen oder eine Update-Funktion erfinden... shit
-//	und das mit dem blöden endeffector-verify ist ja auch noch nicht korrekt... shit noch eins ... ausser 's läge am gleichen?
-		// -> neu setzen wir von aussen einfach die Gruppe dann immer neu? ist das die "Lösung" ???
-
 aAllGroups[i].UpdateIK(); // FEHLER, Bugfix, nötig, weil sonst geht init nicht -> das prüfen, ob das überall stimmt
 					aAllGroups[i].InitializeIK(); // re-init ist nötig, wenn wir das Zeug z.B. entfalten oder so
 	
@@ -124,8 +118,6 @@ aAllGroups[i].UpdateIK(); // FEHLER, Bugfix, nötig, weil sonst geht init nicht 
 				return null;
 		}
 
-//static int layer = 13; // 13 UI_Mask oder 23 AeroFX Ignore
-
 		private bool NeptuneCameraTried = false;
 		private Type ModuleNeptuneCameraType = null;
 		private System.Reflection.MethodInfo ModuleNeptuneCameraSetPartProcessingMethod = null;
@@ -153,7 +145,6 @@ aAllGroups[i].UpdateIK(); // FEHLER, Bugfix, nötig, weil sonst geht init nicht 
 			arrow.transform.localPosition = Vector3.forward * 0.05f;
 			arrow.transform.localRotation = Quaternion.LookRotation(Vector3.forward);
 			arrow.transform.localScale = new Vector3(8f, 8f, 25f);
-//			arrow.SetLayerRecursive(layer);
 
 			rds = arrow.GetComponentsInChildren<MeshRenderer>();
 
@@ -166,7 +157,6 @@ aAllGroups[i].UpdateIK(); // FEHLER, Bugfix, nötig, weil sonst geht init nicht 
 			arrow.transform.localPosition = Vector3.right * 0.05f;
 			arrow.transform.localRotation = Quaternion.LookRotation(Vector3.right);
 			arrow.transform.localScale = new Vector3(8f, 8f, 25f);
-//			arrow.SetLayerRecursive(layer);
 
 			rds = arrow.GetComponentsInChildren<MeshRenderer>();
 
@@ -179,14 +169,12 @@ aAllGroups[i].UpdateIK(); // FEHLER, Bugfix, nötig, weil sonst geht init nicht 
 			arrow.transform.localPosition = Vector3.up * 0.05f;
 			arrow.transform.localRotation = Quaternion.LookRotation(Vector3.up);
 			arrow.transform.localScale = new Vector3(8f, 8f, 25f);
-//			arrow.SetLayerRecursive(layer);
 
 			rds = arrow.GetComponentsInChildren<MeshRenderer>();
 
 			for(int i = 0; i < rds.Length; i++)
 				rds[i].material.color = colorUp;
 
-// Neptune-Camera informieren... // FEHLER, temp, erste Idee
 			if(!NeptuneCameraTried)
 				PrepareNeptuneCamera();
 
@@ -207,48 +195,46 @@ aAllGroups[i].UpdateIK(); // FEHLER, Bugfix, nötig, weil sonst geht init nicht 
 
 		private void UpdatePointerPosition()
 		{
-// FEHLER, hab die targetRotationOffset Sache VOR das LookRotation genommen... vorher war's hinterher -> mal sehen ob das 'ne gute Idee war
-
 			Vector3 targetPosition; Quaternion targetRotation;
 			pActiveGroup.GetTargetPosition(out targetPosition, out targetRotation, true);
 
 			targetPointer.transform.position = targetPosition + targetRotation * pActiveGroup.targetPositionOffset;
 			targetPointer.transform.rotation = targetRotation
 				* pActiveGroup.targetRotationOffset
-				* Quaternion.LookRotation(pActiveGroup.localEndEffectorUp, pActiveGroup.localEndEffectorRight);
+				* Quaternion.LookRotation(pActiveGroup.endEffector.Up, pActiveGroup.endEffector.Right);
 
 			if(pActiveGroup.bShowPosition)
 			{
-				positionPointer.transform.position = pActiveGroup.pEndEffectorTransform.position + pActiveGroup.pEndEffectorTransform.rotation * pActiveGroup.targetPositionOffset;
-				positionPointer.transform.rotation = pActiveGroup.pEndEffectorTransform.rotation
+				positionPointer.transform.position = pActiveGroup.endEffector.Position + pActiveGroup.endEffector.Rotation * pActiveGroup.targetPositionOffset;
+				positionPointer.transform.rotation = pActiveGroup.endEffector.Rotation
 					* pActiveGroup.targetRotationOffset
-					* Quaternion.LookRotation(pActiveGroup.localEndEffectorUp, pActiveGroup.localEndEffectorRight);
+					* Quaternion.LookRotation(pActiveGroup.endEffector.Up, pActiveGroup.endEffector.Right);
 			}
 		}
 
 		////////////////////////////////////////
 		// Update-Functions
 
-int Snc(int a, int b)
-{
-	if(a == b)
-		return a;
+		int Snc(int a, int b)
+		{
+			if(a == b)
+				return a;
 
-	if(a < b)
-	{
-		int c = b / a;
-		if(c * a == b)
-			return a;
-		return 1;
-	}
-	else
-	{
-		int c = a / b;
-		if(c * b == a)
-			return b;
-		return 1;
-	}
-}
+			if(a < b)
+			{
+				int c = b / a;
+				if(c * a == b)
+					return a;
+				return 1;
+			}
+			else
+			{
+				int c = a / b;
+				if(c * b == a)
+					return b;
+				return 1;
+			}
+		}
 
 		private void FixedUpdate()
 		{
@@ -353,16 +339,16 @@ static float maxTurning = 2f;
 			{
 				Quaternion targetRotation =
 					Quaternion.LookRotation(-port.GetNodeTransform().forward, port.GetNodeTransform().rotation * port.GetDockingOrientation())
-					* Quaternion.Inverse(Quaternion.LookRotation(pActiveGroup.localEndEffectorUp, pActiveGroup.localEndEffectorRight));
+					* Quaternion.Inverse(Quaternion.LookRotation(pActiveGroup.endEffector.Up, pActiveGroup.endEffector.Right));
 
 				Vector3 targetPosition = port.GetNodeTransform().position;
 
 // FEHLER, neue Idee -> wenn mehrere SnapAngle möglich sind, dann sollte man den nächsten wählen, wenn
 // man sehr nahe drauf ist... damit man neu ausrichten kann, wenn man gleich davor steht
 
-if((targetPosition - pActiveGroup.pEndEffectorTransform.position).magnitude < 0.5f) // FEHLER, unklar wie weit weg
+if((targetPosition - pActiveGroup.endEffector.Position).magnitude < 0.5f) // FEHLER, unklar wie weit weg
 {
-	DockingFunctions.IDockable p = pActiveGroup.pEndEffectorPart.GetComponent<DockingFunctions.IDockable>();
+	DockingFunctions.IDockable p = pActiveGroup.endEffector.part.GetComponent<DockingFunctions.IDockable>();
 
 	if(p != null)
 	{
@@ -376,11 +362,11 @@ if((targetPosition - pActiveGroup.pEndEffectorTransform.position).magnitude < 0.
 			Quaternion tryRotation =
 Quaternion.AngleAxis(_s * br, port.GetNodeTransform().forward) *
 				Quaternion.LookRotation(-port.GetNodeTransform().forward, port.GetNodeTransform().rotation * port.GetDockingOrientation())
-				* Quaternion.Inverse(Quaternion.LookRotation(pActiveGroup.localEndEffectorUp, pActiveGroup.localEndEffectorRight));
+				* Quaternion.Inverse(Quaternion.LookRotation(pActiveGroup.endEffector.Up, pActiveGroup.endEffector.Right));
 
 // FEHLER, eigentlich müsste man den Winkel betreffend der Achse nehmen, nicht einfach so... aber als erster Versuch ist das vielleicht mal was
-			if(Quaternion.Angle(tgt, pActiveGroup.pEndEffectorTransform.rotation)
-				> Quaternion.Angle(tryRotation, pActiveGroup.pEndEffectorTransform.rotation))
+			if(Quaternion.Angle(tgt, pActiveGroup.endEffector.Rotation)
+				> Quaternion.Angle(tryRotation, pActiveGroup.endEffector.Rotation))
 				tgt = tryRotation;
 		}
 
@@ -394,7 +380,7 @@ Quaternion.AngleAxis(_s * br, port.GetNodeTransform().forward) *
 			{
 				Quaternion targetRotation =
 					Quaternion.LookRotation(targetPart.transform.forward, -targetPart.transform.up)
-					* Quaternion.Inverse(Quaternion.LookRotation(pActiveGroup.localEndEffectorUp, pActiveGroup.localEndEffectorRight));
+					* Quaternion.Inverse(Quaternion.LookRotation(pActiveGroup.endEffector.Up, pActiveGroup.endEffector.Right));
 
 				Vector3 targetPosition = port.GetNodeTransform().position;
 
@@ -429,8 +415,8 @@ Quaternion.AngleAxis(_s * br, port.GetNodeTransform().forward) *
 			{
 				if(Input.GetKeyDown(KeyCode.Mouse0))
 				{
-					if(ServoGroup.pSetEndEffectorGroup.pEndEffectorPart)
-						ServoGroup.pSetEndEffectorGroup.pEndEffectorPart.SetHighlightDefault();
+					if(ServoGroup.pSetEndEffectorGroup.endEffector.part)
+						ServoGroup.pSetEndEffectorGroup.endEffector.part.SetHighlightDefault();
 
 					Part p = GetPartUnderCursor();
 					if(p && OnEndEffectorSelected(p))
@@ -514,7 +500,7 @@ Quaternion.AngleAxis(_s * br, port.GetNodeTransform().forward) *
 
 			// FEHLER, Versuch -> ich probiere mal das aktuelle Teil anzuzeigen... seine Pfeile sozusagen
 			// und die dann herumzuschieben... und das später als Ziel nutzen...
-			if((pActiveGroup != null) && (pActiveGroup.pEndEffectorPart != null))
+			if((pActiveGroup != null) && (pActiveGroup.endEffector.part != null))
 			{
 				if(bLimiter)
 				{
@@ -522,7 +508,7 @@ Quaternion.AngleAxis(_s * br, port.GetNodeTransform().forward) *
 					Controller.Instance.lm.accelerationFactor =
 						2f; // 1 / speedFactor; -> FEHLER, das klappt nicht... ich hab's daher auf 2 erhöht temporär um mal Filme machen zu können
 			
-					Controller.Instance.lm.endEffector = pActiveGroup.pEndEffectorPart;	// FEHLER, alles optimieren, nicht jedes mal neu setzen und so Scheisse
+					Controller.Instance.lm.endEffector = pActiveGroup.endEffector.part;	// FEHLER, alles optimieren, nicht jedes mal neu setzen und so Scheisse
 					Controller.Instance.lm.Update(true);	// FEHLER, wozu param?
 				}
 
@@ -549,8 +535,8 @@ Quaternion.AngleAxis(_s * br, port.GetNodeTransform().forward) *
 					//	a, d -> links rechts drehen (seiten) um up herum, in unserem fall forward
 					//	q, e -> links rechts drehen (quer) um forward herum in unserem fall up
 
-					Vector3 r = pActiveGroup.targetRotationOffset * pActiveGroup.localEndEffectorRight;
-					Vector3 u = pActiveGroup.targetRotationOffset * pActiveGroup.localEndEffectorUp;
+					Vector3 r = pActiveGroup.targetRotationOffset * pActiveGroup.endEffector.Right;
+					Vector3 u = pActiveGroup.targetRotationOffset * pActiveGroup.endEffector.Up;
 					Vector3 f = Vector3.Cross(r, u);
 
 					Vector3 targetPosition; Quaternion targetRotation;
@@ -566,17 +552,17 @@ Quaternion.AngleAxis(_s * br, port.GetNodeTransform().forward) *
 						bUserInput = true;
 
 					if((key_l & DownType) != 0) // rechts
-					{ targetPosition += targetRotation * pActiveGroup.localEndEffectorRight * factor; bUserInput = true; }
+					{ targetPosition += targetRotation * pActiveGroup.endEffector.Right * factor; bUserInput = true; }
 					if((key_j & DownType) != 0) // links
-					{ targetPosition -= targetRotation * pActiveGroup.localEndEffectorRight * factor; bUserInput = true; }
+					{ targetPosition -= targetRotation * pActiveGroup.endEffector.Right * factor; bUserInput = true; }
 					if((key_i & DownType) != 0) // rauf / vorwärts
-					{ targetPosition += targetRotation * Quaternion.AngleAxis(90f, pActiveGroup.localEndEffectorUp) * pActiveGroup.localEndEffectorRight * factor; bUserInput = true; }
+					{ targetPosition += targetRotation * Quaternion.AngleAxis(90f, pActiveGroup.endEffector.Up) * pActiveGroup.endEffector.Right * factor; bUserInput = true; }
 					if((key_k & DownType) != 0) // runter / rückwärts
-					{ targetPosition -= targetRotation * Quaternion.AngleAxis(90f, pActiveGroup.localEndEffectorUp) * pActiveGroup.localEndEffectorRight * factor; bUserInput = true; }
+					{ targetPosition -= targetRotation * Quaternion.AngleAxis(90f, pActiveGroup.endEffector.Up) * pActiveGroup.endEffector.Right * factor; bUserInput = true; }
 					if((key_h & DownType) != 0) // vorwärts / rauf
-					{ targetPosition += targetRotation * pActiveGroup.localEndEffectorUp * factor; bUserInput = true; }
+					{ targetPosition += targetRotation * pActiveGroup.endEffector.Up * factor; bUserInput = true; }
 					if((key_n & DownType) != 0) // rückwärts / runter
-					{ targetPosition -= targetRotation * pActiveGroup.localEndEffectorUp * factor; bUserInput = true; }
+					{ targetPosition -= targetRotation * pActiveGroup.endEffector.Up * factor; bUserInput = true; }
 
 					float _s = bFast ? 15f : 1f;
 
@@ -600,7 +586,7 @@ Quaternion.AngleAxis(_s * br, port.GetNodeTransform().forward) *
 					{
 // FEHLER, total anders machen -> jeweils ein Reset nach jedem Frame oder so
 
-						Vector3 vPosition = pActiveGroup.pEndEffectorTransform.position + pActiveGroup.pEndEffectorTransform.rotation * pActiveGroup.targetPositionOffset;
+						Vector3 vPosition = pActiveGroup.endEffector.Position + pActiveGroup.endEffector.Rotation * pActiveGroup.targetPositionOffset;
 
 						// dann beschränken
 
@@ -612,7 +598,7 @@ Quaternion.AngleAxis(_s * br, port.GetNodeTransform().forward) *
 							targetPosition = vPosition + movement;
 						}
 
-						Quaternion turning = Quaternion.Inverse(pActiveGroup.pEndEffectorTransform.rotation) * targetRotation;
+						Quaternion turning = Quaternion.Inverse(pActiveGroup.endEffector.Rotation) * targetRotation;
 
 						float angle; Vector3 axis;
 						turning.ToAngleAxis(out angle, out axis);
@@ -620,7 +606,7 @@ Quaternion.AngleAxis(_s * br, port.GetNodeTransform().forward) *
 						if(angle > maxTurning)
 						{
 							turning = Quaternion.AngleAxis(maxTurning, axis);
-							targetRotation = pActiveGroup.pEndEffectorTransform.rotation * turning;
+							targetRotation = pActiveGroup.endEffector.Rotation * turning;
 						}
 					}
 
@@ -633,9 +619,9 @@ Quaternion.AngleAxis(_s * br, port.GetNodeTransform().forward) *
 
 					// Position wo ich hin will
 			//		DrawRelative(2, pActiveGroup.targetPosition,
-			//			pActiveGroup.targetRotation * pActiveGroup.localEndEffectorUp);
+			//			pActiveGroup.targetRotation * pActiveGroup.endEffector.Up);
 			//		DrawRelative(3, pActiveGroup.targetPosition,
-			//			pActiveGroup.targetRotation * pActiveGroup.localEndEffectorRight);
+			//			pActiveGroup.targetRotation * pActiveGroup.endEffector.Right);
 
 					// da muss der doofe erste Servo hin... das ist das Ziel im Moment
 		//			DrawRelative(7, pActiveGroup.targetPosition,
@@ -654,12 +640,12 @@ Quaternion.AngleAxis(_s * br, port.GetNodeTransform().forward) *
 					//	a, d -> links rechts drehen (seiten) um up herum, in unserem fall forward
 					//	q, e -> links rechts drehen (quer) um forward herum in unserem fall up
 
-					Vector3 r = pActiveGroup.targetRotationOffset * pActiveGroup.localEndEffectorRight;
-					Vector3 u = pActiveGroup.targetRotationOffset * pActiveGroup.localEndEffectorUp;
+					Vector3 r = pActiveGroup.targetRotationOffset * pActiveGroup.endEffector.Right;
+					Vector3 u = pActiveGroup.targetRotationOffset * pActiveGroup.endEffector.Up;
 					Vector3 f = Vector3.Cross(r, u);
 
-					Vector3 targetPosition = pActiveGroup.pEndEffectorTransform.position + pActiveGroup.pEndEffectorTransform.rotation * pActiveGroup.targetPositionOffset;
-					Quaternion targetRotation = pActiveGroup.pEndEffectorTransform.rotation * pActiveGroup.targetRotationOffset;
+					Vector3 targetPosition = pActiveGroup.endEffector.Position + pActiveGroup.endEffector.Rotation * pActiveGroup.targetPositionOffset;
+					Quaternion targetRotation = pActiveGroup.endEffector.Rotation * pActiveGroup.targetRotationOffset;
 
 					bool _bUserInput = false;
 
@@ -669,17 +655,17 @@ Quaternion.AngleAxis(_s * br, port.GetNodeTransform().forward) *
 						bUserInput = true;
 
 					if((key_l & DownType) != 0) // rechts
-					{ targetPosition += targetRotation * pActiveGroup.localEndEffectorRight * factor; _bUserInput = true; }
+					{ targetPosition += targetRotation * pActiveGroup.endEffector.Right * factor; _bUserInput = true; }
 					if((key_j & DownType) != 0) // links
-					{ targetPosition -= targetRotation * pActiveGroup.localEndEffectorRight * factor; _bUserInput = true; }
+					{ targetPosition -= targetRotation * pActiveGroup.endEffector.Right * factor; _bUserInput = true; }
 					if((key_i & DownType) != 0) // rauf / vorwärts
-					{ targetPosition += targetRotation * Quaternion.AngleAxis(90f, pActiveGroup.localEndEffectorUp) * pActiveGroup.localEndEffectorRight * factor; _bUserInput = true; }
+					{ targetPosition += targetRotation * Quaternion.AngleAxis(90f, pActiveGroup.endEffector.Up) * pActiveGroup.endEffector.Right * factor; _bUserInput = true; }
 					if((key_k & DownType) != 0) // runter / rückwärts
-					{ targetPosition -= targetRotation * Quaternion.AngleAxis(90f, pActiveGroup.localEndEffectorUp) * pActiveGroup.localEndEffectorRight * factor; _bUserInput = true; }
+					{ targetPosition -= targetRotation * Quaternion.AngleAxis(90f, pActiveGroup.endEffector.Up) * pActiveGroup.endEffector.Right * factor; _bUserInput = true; }
 					if((key_h & DownType) != 0) // vorwärts / rauf
-					{ targetPosition += targetRotation * pActiveGroup.localEndEffectorUp * factor; _bUserInput = true; }
+					{ targetPosition += targetRotation * pActiveGroup.endEffector.Up * factor; _bUserInput = true; }
 					if((key_n & DownType) != 0) // rückwärts / runter
-					{ targetPosition -= targetRotation * pActiveGroup.localEndEffectorUp * factor; _bUserInput = true; }
+					{ targetPosition -= targetRotation * pActiveGroup.endEffector.Up * factor; _bUserInput = true; }
 
 					float _s = bFast ? 15f : 1f;
 
@@ -700,8 +686,8 @@ Quaternion.AngleAxis(_s * br, port.GetNodeTransform().forward) *
 					{
 
 					pActiveGroup.SetTargetOffset(
-						Quaternion.Inverse(pActiveGroup.pEndEffectorTransform.rotation) * (targetPosition - pActiveGroup.pEndEffectorTransform.position),
-						Quaternion.Inverse(pActiveGroup.pEndEffectorTransform.rotation) * targetRotation);
+						Quaternion.Inverse(pActiveGroup.endEffector.Rotation) * (targetPosition - pActiveGroup.endEffector.Position),
+						Quaternion.Inverse(pActiveGroup.endEffector.Rotation) * targetRotation);
 					}
 				}
 
@@ -762,13 +748,13 @@ bool _d = (a == dr);
 
 				for(int i = 0; i < pActiveGroup.ikServosForward.Count; i++)
 				{
-					maxRelRotCommand = Mathf.Max(maxRelRotCommand, Mathf.Abs(pActiveGroup.ikServosForward[i].IKS.TotalRelRotCommand));
+					maxRelRotCommand = Mathf.Max(maxRelRotCommand, Mathf.Abs(pActiveGroup.ikServosForward[i].TotalRelRotCommand));
 				}
 
 				for(int i = 0; i < pActiveGroup.ikServosForward.Count; i++)
 				{
-					pActiveGroup.ikServosForward[i].IKS.Speed =
-						Mathf.Abs(pActiveGroup.ikServosForward[i].IKS.TotalRelRotCommand) * (1f / maxRelRotCommand);
+					pActiveGroup.ikServosForward[i].Speed =
+						Mathf.Abs(pActiveGroup.ikServosForward[i].TotalRelRotCommand) * (1f / maxRelRotCommand);
 				}
 
 
@@ -782,13 +768,13 @@ bool _d = (a == dr);
 	*/
 	for(int i = 0; i < pActiveGroup.ikServosForward.Count; i++)
 	{
-		if(pActiveGroup.ikServosForward[i].IKS.IsRotational)
+		if(pActiveGroup.ikServosForward[i].IsRotational)
 		{
-			while(pActiveGroup.ikServosForward[i].IKS.TotalRelRotCommand > 180f)
-				pActiveGroup.ikServosForward[i].IKS.TotalRelRotCommand -= 360f;
+			while(pActiveGroup.ikServosForward[i].TotalRelRotCommand > 180f)
+				pActiveGroup.ikServosForward[i].TotalRelRotCommand -= 360f;
 
-			while(pActiveGroup.ikServosForward[i].IKS.TotalRelRotCommand < -180f)
-				pActiveGroup.ikServosForward[i].IKS.TotalRelRotCommand += 360f;
+			while(pActiveGroup.ikServosForward[i].TotalRelRotCommand < -180f)
+				pActiveGroup.ikServosForward[i].TotalRelRotCommand += 360f;
 		}
 	}
 
@@ -831,10 +817,10 @@ bool _d = (a == dr);
 							if((Quaternion.Angle(_q0, _q) > maxAngle)
 							|| (Quaternion.Angle(_q1, _q) > maxAngle))
 							{
-								if(pActiveGroup.ikServosForward[i].IKS.TotalRelRotCommand > 0f)
-									pActiveGroup.ikServosForward[i].IKS.TotalRelRotCommand -= 360f;
+								if(pActiveGroup.ikServosForward[i].TotalRelRotCommand > 0f)
+									pActiveGroup.ikServosForward[i].TotalRelRotCommand -= 360f;
 								else
-									pActiveGroup.ikServosForward[i].IKS.TotalRelRotCommand += 360f;
+									pActiveGroup.ikServosForward[i].TotalRelRotCommand += 360f;
 
 								blocked = false;
 								retried = true;
@@ -959,7 +945,7 @@ bool _d = (a == dr);
 					lm.servos.Add(sl);
 				}
 
-				lm.endEffector = pActiveGroup.pEndEffectorPart;
+				lm.endEffector = pActiveGroup.endEffector.part;
 			}
 			else
 			{
@@ -1029,11 +1015,11 @@ bool _d = (a == dr);
 				if(endEffectorCoroutinePart)
 					endEffectorCoroutinePart.SetHighlightDefault();
 
-				if(pActiveGroup.pEndEffectorPart)
+				if(pActiveGroup.endEffector.part)
 				{
-					pActiveGroup.pEndEffectorPart.SetHighlight(true, false);
-					pActiveGroup.pEndEffectorPart.SetHighlightColor(new Color(1.0f, 0.5f, 0.0f));
-					pActiveGroup.pEndEffectorPart.SetHighlightType(Part.HighlightType.AlwaysOn);
+					pActiveGroup.endEffector.part.SetHighlight(true, false);
+					pActiveGroup.endEffector.part.SetHighlightColor(new Color(1.0f, 0.5f, 0.0f));
+					pActiveGroup.endEffector.part.SetHighlightType(Part.HighlightType.AlwaysOn);
 				}
 			}
 		}
@@ -1105,12 +1091,18 @@ bool _d = (a == dr);
 
 		public void Action1(InfernalRobotics_v3.Interfaces.IServoGroup g)
 		{
-			s.Action1(g);
+			ServoGroup sg = GetGroup(g);
+
+			if(sg != null)
+				s.Action1(sg.IKG);
 		}
 
 		public void Action2(InfernalRobotics_v3.Interfaces.IServoGroup g)
 		{
-			s.Action2(g);
+			ServoGroup sg = GetGroup(g);
+
+			if(sg != null)
+				s.Action2(sg.IKG);
 		}
 	}
 }

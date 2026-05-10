@@ -8,10 +8,7 @@ namespace IR_Kinematics.Command
 	public class EndEffectorWrapper
 	{
 		public Part part;
-// FEHLER, 3 Teils sind neue Idee...
 		public Transform pEndEffectorTransform;
-		public Vector3 localEndEffectorUp;						// gibt an, was in der Gizmo-Anzeige als "up" gelten soll
-		public Vector3 localEndEffectorRight;					// gibt an, was in der Gizmo-Anzeige als "right" gelten soll
 
 		private Solver.IIKEndEffectorWrapper ike;
 
@@ -19,11 +16,29 @@ namespace IR_Kinematics.Command
 		{
 			part = p;
 			pEndEffectorTransform = p_endEffectorTransform;
-			localEndEffectorUp = p_localEndEffectorUp;
-			localEndEffectorRight = p_localEndEffectorRight;
 
 			ike = Controller.s.Create_IKEndEffectorWrapper(part.persistentId,
-				pEndEffectorTransform.position, pEndEffectorTransform.rotation, localEndEffectorUp, localEndEffectorRight);
+				pEndEffectorTransform.position, pEndEffectorTransform.rotation, p_localEndEffectorUp, p_localEndEffectorRight);
+		}
+
+		public Vector3 Up
+		{
+			get { return ike.Up; }
+		}
+
+		public Vector3 Right
+		{
+			get { return ike.Right; }
+		}
+
+		public Vector3 Position
+		{
+			get { return pEndEffectorTransform.position; }
+		}
+
+		public Quaternion Rotation
+		{
+			get { return pEndEffectorTransform.rotation; }
 		}
 
 		////////////////////////////////////////
