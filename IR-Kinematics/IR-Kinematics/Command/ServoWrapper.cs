@@ -18,7 +18,7 @@ namespace IR_Kinematics.Command
 		{
 			servo = (ModuleIRServo_v3)s;
 
-			iks = Controller.s.Create_IKServoWrapper(servo.part.persistentId, servo.transform.position, servo.transform.rotation, _GetAxis(), _GetSecAxis(), _GetAnchor(), servo.IsRotational, servo.HasMinMaxPosition || servo.IsLimited);
+			iks = Controller.solver.Create_IKServoWrapper(servo.part.persistentId, servo.transform.position, servo.transform.rotation, _GetAxis(), _GetSecAxis(), _GetAnchor(), servo.IsRotational, servo.HasMinMaxPosition || servo.IsLimited);
 		}
 
 		private Vector3 _GetAxis()

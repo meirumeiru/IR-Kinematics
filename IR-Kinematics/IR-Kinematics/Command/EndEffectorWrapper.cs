@@ -17,7 +17,7 @@ namespace IR_Kinematics.Command
 			part = p;
 			pEndEffectorTransform = p_endEffectorTransform;
 
-			ike = Controller.s.Create_IKEndEffectorWrapper(part.persistentId,
+			ike = Controller.solver.Create_IKEndEffectorWrapper(part.persistentId,
 				pEndEffectorTransform.position, pEndEffectorTransform.rotation, p_localEndEffectorUp, p_localEndEffectorRight);
 		}
 

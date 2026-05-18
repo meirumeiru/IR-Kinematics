@@ -18,7 +18,7 @@ namespace IR_Kinematics.Command
 
 		public static bool APIReady { get { return ControllerInstance != null; } }
 
-		public static Solver.IIKSolver s;
+		public static Solver.IIKSolver solver;
 		public Limiter.Limiter lm;
 
 		////////////////////////////////////////
@@ -37,6 +37,14 @@ namespace IR_Kinematics.Command
 		////////////////////////////////////////
 		// Callbacks
 
+		public static void RegisterIKAlgorithm(Solver.IIKSolver s)
+		{
+			solver = s;
+
+			if(ControllerInstance != null)
+				InfernalRobotics_v3.Command.Controller.RegisterIKModule(ControllerInstance);
+		}
+
 		public void Start()
 		{
 			ServoGroup.pSetEndEffectorGroup = null;
@@ -51,10 +59,11 @@ namespace IR_Kinematics.Command
 			}
 
 			ControllerInstance = this;
-			InfernalRobotics_v3.Command.Controller.RegisterIKModule(this);
 
-		//	s = new Solver.IKZeugs();
 			lm = new Limiter.Limiter();
+
+			if(solver != null)
+				InfernalRobotics_v3.Command.Controller.RegisterIKModule(ControllerInstance);
 		}
 
 		private void OnDestroy()
@@ -352,12 +361,12 @@ if((targetPosition - pActiveGroup.endEffector.Position).magnitude < 0.5f) // FEH
 
 	if(p != null)
 	{
-		int s = Snc(p.GetSnapCount(), port.GetSnapCount());
-		float br = 360f / s;
+		int s0 = Snc(p.GetSnapCount(), port.GetSnapCount());
+		float br = 360f / s0;
 
 		Quaternion tgt = targetRotation;
 
-		for(int _s = 1; _s < s; _s++)
+		for(int _s = 1; _s < s0; _s++)
 		{
 			Quaternion tryRotation =
 Quaternion.AngleAxis(_s * br, port.GetNodeTransform().forward) *
@@ -736,7 +745,7 @@ bool _d = (a == dr);
 
 			System.Runtime.CompilerServices.StrongBox<bool> res = new System.Runtime.CompilerServices.StrongBox<bool>(false);
 
-			yield return s.SolveIK(res);
+			yield return solver.SolveIK(res);
 
 			if(res.Value)
 			{
@@ -884,7 +893,7 @@ bool _d = (a == dr);
 				pActiveGroup = sg;
 
 
-				s.SetActiveGroup(pActiveGroup.IKG);
+				solver.SetActiveGroup(pActiveGroup.IKG);
 
 
 				SetLimiter(pActiveGroup.servoGroup, bLimiter);
@@ -918,7 +927,7 @@ bool _d = (a == dr);
 			{
 				InputLockManager.RemoveControlLock("_IRIK");
 
-				s.SetActiveGroup(null);
+				solver.SetActiveGroup(null);
 
 				return true;
 			}
@@ -1040,7 +1049,7 @@ bool _d = (a == dr);
 
 
 // FEHLER, ist das ok so?
-				s.SetActiveGroup(pActiveGroup.IKG);
+				solver.SetActiveGroup(pActiveGroup.IKG);
 			}
 
 			return bRes;
@@ -1094,7 +1103,7 @@ bool _d = (a == dr);
 			ServoGroup sg = GetGroup(g);
 
 			if(sg != null)
-				s.Action1(sg.IKG);
+				solver.Action1(sg.IKG);
 		}
 
 		public void Action2(InfernalRobotics_v3.Interfaces.IServoGroup g)
@@ -1102,7 +1111,7 @@ bool _d = (a == dr);
 			ServoGroup sg = GetGroup(g);
 
 			if(sg != null)
-				s.Action2(sg.IKG);
+				solver.Action2(sg.IKG);
 		}
 	}
 }

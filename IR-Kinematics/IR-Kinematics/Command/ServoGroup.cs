@@ -422,7 +422,7 @@ if((endEffector == null) || !endEffector.part/*|| (EndEffectorPosition() != 1)*/
 		//	SetEndEffector();
 
 
-			Controller.s.InitializeIK(isReversed, ikServosForward, ikServosBackward,
+			Controller.solver.InitializeIK(isReversed, ikServosForward, ikServosBackward,
 				endEffector, rootPart,
 				out ikg, out bIsValidGroup);
 
@@ -500,7 +500,7 @@ if((endEffector == null) || !endEffector.part/*|| (EndEffectorPosition() != 1)*/
 #endif
 */
 
-			Controller.s.UninitializeIK(IKG);
+			Controller.solver.UninitializeIK(IKG);
 
 //			if(ikg2_id != 0)
 //				Solver.IKSolverxtern.DeleteGroup(ikg2_id);
