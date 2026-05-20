@@ -919,7 +919,7 @@ bool _d = (a == dr);
 				targetPointer.SetActive(true);
 				positionPointer.SetActive(sg.bShowPosition);
 
-				InputLockManager.SetControlLock(ControlTypes.PITCH | ControlTypes.ROLL | ControlTypes.YAW | ControlTypes.THROTTLE | ControlTypes.LINEAR, "_IRIK");
+				InputLockManager.SetControlLock(ControlTypes.PITCH | ControlTypes.ROLL | ControlTypes.YAW | ControlTypes.THROTTLE | ControlTypes.LINEAR | ControlTypes.THROTTLE_CUT_MAX | ControlTypes.RCS, "_IRIK");
 
 				return true;
 			}
