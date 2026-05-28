@@ -39,9 +39,9 @@
     <Reference Include="DockingFunctions">
       <HintPath>..\..\..\DockingFunctions\DockingFunctions\DockingFunctions\bin\Release\DockingFunctions.dll</HintPath>
     </Reference>
-    <Reference Include="InfernalRobotics_v3, Version=3.0.1.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="InfernalRoboticsNext, Version=3.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\InfernalRobotics\InfernalRobotics\InfernalRobotics\bin\Release 1.12\InfernalRobotics_v3.dll</HintPath>
+      <HintPath>..\..\..\InfernalRobotics\InfernalRobotics\InfernalRobotics\bin\Release 1.12\InfernalRoboticsNext.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
