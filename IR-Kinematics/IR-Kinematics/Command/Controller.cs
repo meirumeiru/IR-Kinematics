@@ -48,6 +48,9 @@ namespace IR_Kinematics.Command
 		public void Start()
 		{
 			ServoGroup.pSetEndEffectorGroup = null;
+
+            GameEvents.onHideUI.Add(OnHideUI);
+            GameEvents.onShowUI.Add(OnShowUI);
 		}
 
 		private void Awake()
@@ -69,6 +72,31 @@ namespace IR_Kinematics.Command
 		private void OnDestroy()
 		{
 			InfernalRobotics_v3.Command.Controller.RegisterIKModule(null);
+
+            GameEvents.onHideUI.Remove(OnHideUI);
+            GameEvents.onShowUI.Remove(OnShowUI);
+		}
+
+		private void OnHideUI()
+		{
+			if(pActiveGroup != null)
+			{
+				if(targetPointer)
+					targetPointer.SetActive(false);
+				if(positionPointer)
+					positionPointer.SetActive(false);
+			}
+		}
+
+		private void OnShowUI()
+		{
+			if(pActiveGroup != null)
+			{
+				if(targetPointer)
+					targetPointer.SetActive(true);
+				if(positionPointer)
+					positionPointer.SetActive(pActiveGroup.bShowPosition);
+			}
 		}
 
 		////////////////////////////////////////
@@ -448,7 +476,10 @@ Quaternion.AngleAxis(_s * br, port.GetNodeTransform().forward) *
 				{
 					Part p = GetPartUnderCursor();
 					if(p)
+					{
 						SetTarget(p);
+						bMove = false;
+					}
 
 					bSelectTarget = false;
 				}
@@ -457,6 +488,8 @@ Quaternion.AngleAxis(_s * br, port.GetNodeTransform().forward) *
 
 		static float maxDistance = 1f;
 		static float speedFactor = 5f;
+
+		bool bMove = true;
 
 		float fastCounter = 1f;
 		int lastMode = 1;
@@ -558,7 +591,10 @@ Quaternion.AngleAxis(_s * br, port.GetNodeTransform().forward) *
 					float factor = bFast ? 0.1f : 0.001f;
 
 					if((key_z & DownType) != 0)
+					{
+						bMove = true;
 						bUserInput = true;
+					}
 
 					if((key_l & DownType) != 0) // rechts
 					{ targetPosition += targetRotation * pActiveGroup.endEffector.Right * factor; bUserInput = true; }
@@ -660,8 +696,11 @@ Quaternion.AngleAxis(_s * br, port.GetNodeTransform().forward) *
 
 					float factor = bFast ? 0.1f : 0.001f;
 
+				//	if((key_z & DownType) != 0)
+				//		bUserInput = true;			// FEHLER, Shift-Z hat nicht diese Bedeutung
+	
 					if((key_z & DownType) != 0)
-						bUserInput = true;
+						bMove = false;
 
 					if((key_l & DownType) != 0) // rechts
 					{ targetPosition += targetRotation * pActiveGroup.endEffector.Right * factor; _bUserInput = true; }
@@ -706,7 +745,7 @@ Quaternion.AngleAxis(_s * br, port.GetNodeTransform().forward) *
 			// calculate IK for the active group
 			//			wenn aktiv -> berechnen
 
-			if(bUserInput)
+			if(bUserInput && bMove)
 			{
 /*
 float a = 360f;
@@ -848,6 +887,8 @@ bool _d = (a == dr);
 						(pActiveGroup.servoGroup.GroupSpeedFactor / 2f) * maxDistance,
 						1 / speedFactor);
 			}
+			else
+				ScreenMessages.PostScreenMessage("no solution", 1, ScreenMessageStyle.UPPER_CENTER);
 		}
 
 		////////////////////////////////////////
@@ -887,6 +928,10 @@ bool _d = (a == dr);
 				if(!sg.bIsValidGroup)
 				{
 					ScreenMessages.PostScreenMessage("invalid group", 5, ScreenMessageStyle.UPPER_CENTER);
+
+					sg.AutoSelectEndeffector(); // falls das Problem beim falschen EndEffector liegt, würde dies das lösen -> erneutes IK-Drücken würde dann funktionieren
+// FEHLER, keine gute Lösung
+
 					return false;
 				}
 
@@ -917,7 +962,7 @@ bool _d = (a == dr);
 				UpdatePointerPosition();
 
 				targetPointer.SetActive(true);
-				positionPointer.SetActive(sg.bShowPosition);
+				positionPointer.SetActive(pActiveGroup.bShowPosition);
 
 				InputLockManager.SetControlLock(ControlTypes.PITCH | ControlTypes.ROLL | ControlTypes.YAW | ControlTypes.THROTTLE | ControlTypes.LINEAR | ControlTypes.THROTTLE_CUT_MAX | ControlTypes.RCS, "_IRIK");
 

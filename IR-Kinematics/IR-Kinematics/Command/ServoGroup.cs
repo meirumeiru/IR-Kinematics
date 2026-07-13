@@ -244,7 +244,7 @@ namespace IR_Kinematics.Command
 			return null;
 		}
 
-		public void AutoSelectEndeffector()
+		public bool AutoSelectEndeffector()
 		{
 			Part p = ikServosBackward[0].servo.HostPart;
 
@@ -255,7 +255,12 @@ if(efp != null)
 else if(p.children.Count > 0)
 	p = p.children[0];
 
+			if((endEffector != null) && (endEffector.part == p))
+				return false;
+
 			SetEndEffector(p);
+
+			return true;
 		}
 
 		private void SetEndEffector(Part pEndEffectorPart)
@@ -429,7 +434,12 @@ if((endEffector == null) || !endEffector.part/*|| (EndEffectorPosition() != 1)*/
 //pEndEffectorWrapper übergeben; // FEHLER, ich probier umzustellen
 
 			if(!bIsValidGroup)
+			{
 				ScreenMessages.PostScreenMessage("invalid group", 5, ScreenMessageStyle.UPPER_CENTER);
+
+				AutoSelectEndeffector(); // falls das Problem beim falschen EndEffector liegt, würde dies das lösen -> erneutes IK-Drücken würde dann funktionieren
+// FEHLER, keine gute Lösung
+			}
 
 /*
 			Solver.IKServoWrapper[] ikServos;
